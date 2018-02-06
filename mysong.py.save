@@ -1,0 +1,415 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+import logging
+import read_lyrics
+import chat
+from telegram import  (ReplyKeyboardMarkup, ReplyKeyboardRemove, User, Bot,InlineKeyboardButton, InlineKeyboardMarkup)
+from telegram.ext import (Updater, CommandHandler, MessageHandler, ConversationHandler, Filters,RegexHandler,CallbackQueryHandler)
+
+
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                    level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+EDAD, SEXO , ESTEROTIPO, AWNSER1, ROLES, AWNSER2, PODER, AWNSER3, CUERPO, AWNSER4,GENERAL, AWNSER5, END1 = range(13)
+GENRE = range(1)
+estro = []
+aux=''
+
+
+def teclado(select):
+  bol = False
+   	#U+1F601 	1F528 1F51A
+  if select == 1:
+    keyboard = [['Chico','Chica']]
+
+  if select == 2:
+    keyboard = [['Si','No']]
+    bol = True
+  if select == 3:
+    #\U0001f51a
+    keyboard = [['1','2','3','4','5'],['6','7','8','9','10'],['ninguno','\U0001f51a']]
+  if select ==4:
+    keyboard = [["pop","reguetón"],["romántica"]]
+
+  if select == 5:
+    keyboard = [['1','2','3','4','5'],['6','7','8','9','10']]
+
+  reply_markup = ReplyKeyboardMarkup(keyboard , resize_keyboard = True, one_time_keyboard= bol )
+  return reply_markup
+
+
+def negado (update):
+  # verific the entri given by the user if is no then the bot end the conversation
+
+  if update.message.text == 'No':
+    update.message.reply_text( 'Lástima. Nos hubiera gustado contar contigo. ¡Cuídate!')
+
+
+
+def check_number(update):
+  #compara el numero introducido en el taclado con la cantidad de estrofas
+  keys = read_lyrics.lyrics()[1]
+  global estro
+  if int(update.message.text) <= len(keys):
+      estro.append(int(update.message.text))
+  else:
+      update.message.reply_text('solo hay %d estrofas' % ( len(keys) ))
+
+def cancion(bot,update):
+
+    if read_lyrics.sanity():
+      letras , keys = read_lyrics.lyrics()
+      bot.sendMessage(chat_id = update.message.chat_id, text = 'Esta es la letra de la canción:\n Nombre: %s'%(read_lyrics.song_name()))
+      for i in range(len(keys)):
+          bot.sendMessage(chat_id = update.message.chat_id, text = "Estrofa:%d\n%s" %(i + 1, letras[keys[i]]))
+    else:
+      bot.sendMessage(chat_id = update.message.chat_id, text = 'Tienes que escoger el genero primero')
+
+def concepte(bot, update):
+  f = open('conceptos.txt','r')
+  concep = f.read()
+  bot.sendMessage(chat_id = update.message.chat.id, text= concep)
+  f.close()
+  f = open('conceptos1.txt','r')
+  concep = f.read()
+  bot.sendMessage(chat_id = update.message.chat.id, text= concep)
+  f.close()
+
+def start(bot, update):
+    bot.sendMessage(chat_id = update.message.chat_id, text= 'Hola {}. Gracias por participar. para interanctuar conmigo puedes utilizar estos comandos: '.format(upda)
+                   ' Puedes Enviar estos comando para interactuar conmigo.\n\n'
+                   '/acerca_de Entidades y personas involucradas.\n'
+                   '/analizar Para analizar una nueva cancion.\n'
+                   '/ayuda Da una descripcion del funcionamiento del bot.\n'
+                   '/conceptos Ofrece una explicación para cada uno de los conceptos.\n' 
+                   '/cancel Cancelar el análisis.\n'
+                   '/cancion Muestra la letra de la canción.\n'
+                   )
+   bot.sendMessage( text = 'Para comenzar a analizar pulsa /analizar')
+
+
+def analizar(bot, update):
+   estro= []
+   if chat.has_age(update):
+       bot.sendMessage( chat_id=update.message.chat_id , text = "Hola {}. Encantado de verte de nuevo, ".format(update.message.from_user.first_name))
+
+
+       bot.sendMessage( chat_id=update.message.chat_id, text="Elige el genero musical que quieres analizar."
+                                              , reply_markup=teclado(4))
+       return ESTEROTIPO
+   else:
+       bot.sendMessage(chat_id=update.message.chat_id, text="Un par de preguntas rápidas para conocerte. "
+                                          " ¿Me puedes decir tu edad, por favor?")
+
+
+
+       return SEXO
+
+
+
+
+def edad(bot, update):
+
+   if update.message.text == 'Si':
+     bot.sendMessage(chat_id=update.message.chat_id, text = '¿Me dices tu edad, por favor?')
+     return SEXO
+
+   else:
+     negado(update)
+     return ConversationHandler.END
+
+
+def sexo(bot, update):
+    if update.message.text.isdigit() and int(update.message.text) > 10 and int(update.message.text) < 70:
+        chat.user_age(update)
+        bot.sendMessage(chat_id=update.message.chat_id, text = '¿Eres chico o chica?', reply_markup= teclado(1))
+        return GENRE 
+    if update.message.text.isdigit() and int(update.message.text) <= 10:
+        bot.sendMessage(chat_id=update.message.chat_id, text = '¿No crees que eres algo joven?')
+    if update.message.text.isdigit() and int(update.message.text) > 70:
+        bot.sendMessage(chat_id=update.message.chat_id, text = '¿No crees que eres algo mayor?')
+    
+
+def genre(bot,update):
+   
+    #if update.message.text == 'No':
+    #    update.message.reply_text('lastima sabias que parte de la violencia'
+    #                             '\nde genero es causada por canciones de contenido machista')
+    #    return ConversationHandler.END
+     if update.message.text == 'Chico' or  update.message.text == 'Chica':
+       chat.user_sexo(update)
+       bot.sendMessage(chat_id = update.message.chat.id, text='Elige el genero musical que quieres analizar.'
+                                                    ,reply_markup = teclado(4))
+     
+       return ESTEROTIPO
+     else:
+       bot.sendMessage(chat_id = update.message.chat.id, text='Oops! usa el teclado emergente.')
+
+
+def esterotipo(bot, update ):
+    read_lyrics.musical_genre(update.message.text)
+    if read_lyrics.new_song(update.message.chat.id):
+        bot.sendMessage(chat_id = update.message.chat_id, text = 'analisaste toda la base de datos',
+                        reply_markup =ReplyKeyboardRemove() )
+        return ConversationHandler.END
+    letras , keys = read_lyrics.lyrics()
+
+    bot.sendMessage(chat_id = update.message.chat_id, text = 'Esta es la letra de la canción:\n Nombre: %s'%(read_lyrics.song_name()))
+    
+    for i in range(len(keys)):
+        bot.sendMessage(chat_id = update.message.chat_id, text = "Estrofa: %d\n%s" %(i + 1, letras[keys[i]]))
+
+
+    bot.sendMessage(chat_id = update.message.chat_id, text = 'Ahora, voy a hacerte una serie de preguntas'
+                    'relacionadas con la letra de la canción. Para responderlas utilice el teclado emergente'
+                    'que he diseñado.\n'
+                    '\nIdentifica aquellas estrofas que contienen estereotipos (creencias que suponen '
+                    'generalizaciones sobre lo que “debe ser” una mujer y/o un hombre).'
+                    ' Presiona \U0001f51a para pasar a la siquiente pregunta', reply_markup = teclado(3))
+
+
+    return AWNSER1
+def awnser1(bot,update):
+    
+    if  update.message.text == 'ninguno':
+        bot.sendMessage(chat_id = update.message.chat_id,
+                       text = 'Identifica aquellas estrofas que contienen una diferencia de roles: papeles, tareas,'
+                       'normas que debe asumir la mujer y el hombre en sociedad. Por ejem. Se espera que las mujeres'
+                       ' cuiden de los familiares enfermos.', reply_markup = teclado(3))
+        chat.estereotipo(update, read_lyrics.song_name())
+        return AWNSER2
+    if update.message.text.isdigit():
+       check_number(update)
+       
+       return AWNSER1
+    if update.message.text == '\U0001f51a':
+        bot.sendMessage(chat_id = update.message.chat_id,
+                        text = 'En una escala de 1 a 10, siendo 1 el nivel más bajo y 10 el más alto, '
+                        '¿en qué medida dichos estereotipos degradan a la mujer o la sitúan en una posición'
+                        ' “inferior-débil” frente al hombre?', reply_markup = teclado(5) )
+        
+
+        return ROLES
+
+def roles(bot,update):
+    if update.message.text.isdigit():
+       global estro
+       bot.sendMessage(chat_id = update.message.chat_id,
+                       text = 'Identifica aquellas estrofas que contienen una diferencia de roles: papeles, tareas,'
+                       'normas que debe asumir la mujer y el hombre en sociedad. P.e. se espera que las mujeres'
+                       ' cuiden de los familiares enfermos.', reply_markup = teclado(3) )
+       chat.estereotipo(update, read_lyrics.song_name(),estro)
+       estro =[]
+       return AWNSER2
+    else:
+        update.message.reply_text('tiene que ser un numero del 1 al 10')
+        return ROLES
+
+
+def awnser2(bot,update):
+    
+    if  update.message.text == 'ninguno':
+       bot.sendMessage(chat_id = update.message.chat_id,
+                       text = 'Identifica aquellas estrofas que plantean posiciones de desigualdad, otorgando '
+                       'más poder a los hombres que a las mujeres.', reply_markup = teclado(3) )
+
+       chat.roles(update,read_lyrics.song_name() )
+       return AWNSER3
+    if update.message.text.isdigit():
+      check_number(update)
+      
+      return AWNSER2
+    if update.message.text == '\U0001f51a':
+        bot.sendMessage(chat_id = update.message.chat_id,
+                        text ='En una escala de 1 a 10, siendo 1 el nivel más bajo y 10 el más alto, '
+                        '¿en qué medida los roles asignados a las mujeres poseen menos reconocimiento '
+                        'social que los de los hombres?', reply_markup = teclado(5) )
+        
+
+        return PODER
+
+def poder(bot,update):
+    if update.message.text.isdigit():
+       global estro
+       bot.sendMessage(chat_id = update.message.chat_id,
+                       text ='Identifica aquellas estrofas que plantean posiciones de desigualdad, otorgando '
+                       'más poder a los hombres que a las mujeres.', reply_markup = teclado(3) )
+       chat.roles(update, read_lyrics.song_name() ,estro)
+       estro =[]
+       return AWNSER3
+    else:
+        update.message.reply_text('tiene que ser un numero del 1 al 10')
+        return PODER
+
+
+def awnser3(bot,update):
+    
+    if  update.message.text == 'ninguno':
+       bot.sendMessage(chat_id = update.message.chat_id,
+                       text = 'Identifica aquellas estrofas que se refieren al cuerpo de las mujeres',
+                       reply_markup = teclado(3))
+       chat.poder(update, read_lyrics.song_name())
+       return AWNSER4
+    if update.message.text.isdigit():
+      check_number(update)
+      return AWNSER3
+    if update.message.text == '\U0001f51a':
+        bot.sendMessage(chat_id = update.message.chat_id,
+                        text = 'En una escala de 1 a 10, siendo 1 el nivel más bajo y 10 el más alto, '
+                               '¿en qué medida se plantea una relación de dominación?', reply_markup = teclado(5) )
+
+       
+        return CUERPO
+
+def cuerpo(bot,update):
+    if update.message.text.isdigit():
+       global estro
+       bot.sendMessage(chat_id = update.message.chat_id,
+                       text = 'Identifica aquellas estrofas que se refieren al cuerpo de las mujeres.',
+                       reply_markup = teclado(3) )
+       chat.poder(update, read_lyrics.song_name(),estro)
+       estro = []
+       return AWNSER4
+    else:
+        update.message.reply_text('tiene que ser un numero del 1 al 10')
+        return CUERPO
+
+
+def awnser4(bot,update):
+    
+    if  update.message.text == 'ninguno':
+
+       bot.sendMessage(chat_id = update.message.chat_id,
+                       text = '¿Consideras sexista esta canción?', reply_markup=teclado(2))
+       chat.cuerpo(update, read_lyrics.song_name())
+       return AWNSER5
+    if update.message.text.isdigit():
+       check_number(update)
+       
+       return AWNSER4
+    if update.message.text == '\U0001f51a':
+        bot.sendMessage(chat_id = update.message.chat_id,
+                        text ='En una escala de 1 a 10, siendo 1 el nivel más bajo y 10 el más alto, '
+                        '¿en qué medida se les otorga un valor de “objeto sexual”?'
+                        ,reply_markup = teclado(5))
+      
+        return GENERAL
+
+def general(bot,update):
+    if update.message.text.isdigit():
+       global estro
+       bot.sendMessage(chat_id = update.message.chat_id,
+                       text = '¿Consideras sexista esta canción?', reply_markup=teclado(2))
+       chat.cuerpo(update, read_lyrics.song_name(),estro)
+       estro = []
+       return AWNSER5
+    else:
+        update.message.reply_text('tiene que ser un numero del 1 al 10')
+        return GENERAL
+
+
+
+
+def awnser5(bot,update):
+    global estro
+    if  update.message.text == 'No':
+       bot.sendMessage(chat_id=update.message.chat_id, text = '¡Genial! Hemos completado el análisis de esta canción.'
+                      ' Si quieres analizar otra canción teclea el comando /analizar',reply_markup =ReplyKeyboardRemove())
+       read_lyrics.analyzed(update)
+       chat.general(update, read_lyrics.song_name())
+       estro = []
+       return ConversationHandler.END
+
+    if update.message.text == 'Si':
+        bot.sendMessage(chat_id = update.message.chat_id,
+                        text = 'En una escala de 1 a 10, siendo 1 el nivel más bajo y 10 el más alto,'
+                                '¿En qué grado?',reply_markup=teclado(5))
+
+        aux = update.message.text
+        return END1
+
+
+
+def end (bot, update):
+  global aux
+  bot.sendMessage(chat_id=update.message.chat_id, text = '¡Genial! Hemos completado el análisis de esta canción.'
+                    ' Si quieres analizar otra canción\n teclea el comando /analizar ', reply_markup =ReplyKeyboardRemove())
+  chat.general(update, read_lyrics.song_name(),aux)
+  read_lyrics.analyzed(update)
+  aux = ''
+  
+  return ConversationHandler.END
+
+def cancel(bot,update):
+  user = update.message.from_user
+  logger.info("User %s canceled the conversation.", user.first_name)
+  bot.sendMessage(chat_id=update.message.chat_id, text = 'Hasta otra {}'.format(user.first_name)
+                    , reply_markup =ReplyKeyboardRemove())
+  return ConversationHandler.END
+
+def ayuda(bot,update):
+
+  update.message.reply_text('mison es un bot de encuesta, si  analizas una canción (presionando el comando /analizar).'
+                            ' Tendrás que contestar 5 preguntas donde se pedirá que ingreses las estrofas que  tengan contenido'
+                            'machista relacionado dicha pregunta, es decir Estereotipo, roles, poder,'
+                            'cuerpo y general, seguido de 5 preguntas sobre grado de ofensa'
+                            ' que tiene esas estrofas.\n\n'
+                            'Cada estrofa tendrá un numero en la parte superior, ese numero será el que debes'
+                            'ingresar para indicarnos cuales estrofas te parecieron machistas.\n\n'
+                            'Por ultimo para indicar el grado de ofensa con un numero del 1 al 10.',
+                        reply_markup=ReplyKeyboardRemove())
+
+
+
+
+
+def main():
+
+  Token = ''
+  updater = Updater(Token)
+
+
+  conv_handler = ConversationHandler(
+        entry_points=[CommandHandler('analizar', analizar)],
+
+        states={
+
+            #EDAD: [RegexHandler('^(Si|No|si|no)$', edad)],
+            SEXO: [RegexHandler('^([0-9][0-9]?)$', sexo)],
+            GENRE:[MessageHandler(Filters.text, genre)],
+            ESTEROTIPO:[RegexHandler('^(pop|romantica|regueton)$', esterotipo)],
+            AWNSER1:[RegexHandler('^([0-9][0-9]?|ninguno|\U0001f51a)$', awnser1)],
+            ROLES: [MessageHandler(Filters.text, roles)],
+            AWNSER2:[RegexHandler('^([0-9][0-9]?|ninguno|\U0001f51a)$', awnser2)],
+            PODER: [MessageHandler(Filters.text, poder)],
+            AWNSER3:[RegexHandler('^([0-9][0-9]?|ninguno|\U0001f51a)$', awnser3)],
+            CUERPO: [MessageHandler(Filters.text, cuerpo)],
+            AWNSER4:[RegexHandler('^([0-9][0-9]?|ninguno|\U0001f51a)$', awnser4)],
+            GENERAL: [MessageHandler(Filters.text, general)],
+            AWNSER5:[RegexHandler('^(Si|No|si|no)$', awnser5)],
+            END1: [RegexHandler('^([0-9][0-9]?|\U0001f51a)$', end)]
+
+        },
+
+        fallbacks=[CommandHandler('cancel', cancel)]
+  )
+  updater.dispatcher.add_handler(CommandHandler('start',start))
+  updater.dispatcher.add_handler(conv_handler)
+  updater.dispatcher.add_handler(CommandHandler('cancion',cancion))
+  updater.dispatcher.add_handler(CommandHandler('concepte',concepte))
+  updater.dispatcher.add_handler(CommandHandler('ayuda',ayuda))
+  updater.start_polling()
+  #updater.start_webhook(listen='0.0.0.0',
+  #                    port=8443,
+  #                    url_path='Token',
+  #                    key='private.key',
+  #                    cert='cert.pem',
+  #                    webhook_url=':8443/Token')
+
+  updater.idle()
+
+
+if __name__=='__main__':
+  main()
