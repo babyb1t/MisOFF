@@ -1,5 +1,5 @@
 _id,Name_song,Genero,Artista,user_id,user_age,analisis,valid,Lyrics
-30000,Deja Que Te Bese,romantica,Alejandro Sanz,[],[],0,0,"
+30000,Deja Que Te Bese,romantica,Alejandro Sanz,[500737046],[27],1,0,"
 
 [Verse 1]
 Deja que se enteren
@@ -254,7 +254,7 @@ Que va ser mi
 Gong gong goro gong gong
 
 "
-30003,Míranos,romantica,Álex Ubago,[],[],0,0,"
+30003,Míranos,romantica,Álex Ubago,[500737046],[27],1,0,"
 
 [verso 1:]
 Después de todo este final

@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 
 base_url = "http://api.genius.com"
 
-headers = {'Authorization':'Bearer Token'}
+headers = {'Authorization':'Bearer Cxf0lIhRCZxR6YEo3VFuy0_bjiPOstPH0UP9RObaOoCdYLI6svWyrOz7OlnCFj5y'}
 
 #song_title = "q=Lake Song"
 song_title ="q=Despacito"

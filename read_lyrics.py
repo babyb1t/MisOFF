@@ -2,8 +2,8 @@ import re
 import sys
 from pymongo import MongoClient
 from random import randint
-#client = MongoClient('localhost',27017)
-client = MongoClient('mongodb://user:pass@localhost:27017/')
+client = MongoClient('localhost',27017)
+#client = MongoClient('mongodb://user:pass@localhost:27017/')
 
 db = client.song
 
@@ -11,8 +11,8 @@ init = 0
 
 def musical_genre(select):
   global  db, init
-  if select == 'pop':
-    genero = db.pop
+  if select == 'pop en español':
+    genero = db.pop_es
     init = 20000
   if select == 'reguetón':
     genero = db.regueton
@@ -20,6 +20,10 @@ def musical_genre(select):
   if select == 'romántica':
     genero = db.romantica
     init = 30000
+  if select == 'pop':
+    genero =db.pop
+    init = 80000
+
   return genero
 
 
@@ -48,14 +52,14 @@ def new_song(update): #make sure that the user is analysing a song never analyze
   while  analyzed: #mientras este analizada la cancion buscara otra
     
     song_id = randint(init,init + genero.find().count() - 1)
-    print(init, genero.find().count())
+    
     i+=1
     if i == 40:
       song_id = ''
       return 1, ''
 
     ####song test #### cambiar
-    print(song_id)
+    
     users_id = genero.find_one({'_id':song_id})["user_id"]
     valid = genero.find_one({'_id':song_id})["valid"]
     analyzed=0
@@ -65,11 +69,19 @@ def new_song(update): #make sure that the user is analysing a song never analyze
            analyzed = 1  
       if analyzed == 0:
         tmp.update({"user_id":update.message.chat.id},{"$set":{"songId":song_id}})
+        tmp.update({"user_id":update.message.chat.id},{"$set":{"estro":[]}})
         return 0 
+def insert_estrofas(update):
+  tmp = db.tmp
+  tmp.update({"user_id":update.message.chat.id},{"$push":{"estro":int(update.message.text)}})
 
+def insert_general(update):
+  tmp = db.tmp
+  tmp.update({"user_id":update.message.chat.id},{"$set":{"general":update.message.text}})
 
-
-
+def num_estrofas(update):
+  tmp = db.tmp
+  return len(tmp.find_one({"user_id":update.message.chat.id})["estro"])
 def analyzed(update):
   #### song test cambiar
   
@@ -136,9 +148,52 @@ def lyrics(update):
    #lyrica.close()
    return letra , keys
 
+def letra(data):
+   
+   letra = {}
+   keys = list()
+   
+   lista = re.findall(r"(?<=])[ê!-?'¡¿\s,a-zA-Z()áéíóúÁÉÍÓÚñÑçã]*",data)
+   titulos = re.findall(r"\[[çã!-?'¡¿\s,a-zA-Z()áéíóúÁÉÍÓÚñÑ]+\]",data)
+   for i in range(len(lista)):
+      if not titulos[i] in letra:
+         letra[titulos[i]] = lista[i]
+      
+   for key in letra:
+    tag=re.findall(r"(outro|intro|Translation|instrumental|(\[en\]))",key, flags = re.I)
+    
+    
+    if tag == []:
+      
+      keys.append(key)
+   
+   #lyrica.close()
+   return letra , keys
 
 
+def nombre_tmp(genero):
+  allsongs = db.allsongs
+  
+  for i in range(0, genero.find().count()):
+      k = 0
+    
+      letr , keys = letra(genero.find()[i]["Lyrics"])
+      allsongs.insert({"_id":genero.find()[i]["_id"]})
+      for j in keys:
+         allsongs.update_one({"_id":genero.find()[i]["_id"]},{"$push":{"estrofa":letr[j]}} )
+         k+=1
 
 if __name__=='__main__':
-  #for i in range(0, )
-  lyrics('pop',6)
+  genero = db.pop
+  nombre_tmp(genero)
+#  if select == 'pop en español':
+#    genero = db.pop_es
+#    init = 20000
+#  if select == 'reguetón':
+#    genero = db.regueton
+#    init = 10000
+#  if select == 'romántica':
+#    genero = db.romantica
+#    init = 30000
+#  if select == 'pop':
+#    genero =db.pop

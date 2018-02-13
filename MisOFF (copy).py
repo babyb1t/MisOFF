@@ -14,6 +14,8 @@ logger = logging.getLogger(__name__)
 
 EDAD, SEXO ,CANCIONES ,ESTEROTIPO, GENRE, AWNSER1, ROLES, AWNSER2, PODER, AWNSER3, CUERPO, AWNSER4,GENERAL, AWNSER5,LANGUAGE, END1 = range(16)
 
+estro = []
+aux=''
 
 def teclado(select):
   bol = False
@@ -53,11 +55,11 @@ def negado (update):
 
 def check_number(update):
   #compara el numero introducido en el taclado con la cantidad de estrofas
-   
+  global estro 
   keys = read_lyrics.lyrics(update)[1]
   
   if int(update.message.text) <= len(keys):
-      read_lyrics.insert_estrofas(update)
+      estro.append(int(update.message.text))
   else:
       update.message.reply_text('Solo hay %d estrofas' % ( len(keys) ))
 
@@ -106,7 +108,7 @@ def start(bot, update):
 
 
 def analizar(bot, update):
-   
+   estro= []
   
    if chat.has_age(update):
        bot.sendMessage( chat_id=update.message.chat_id , text = "Encantado {} que quieras continuar.".format(update.message.from_user.first_name))
@@ -202,7 +204,7 @@ def estereotipo(bot, update):
     return GENRE
 
 def awnser1(bot,update):
-   
+    global estro
     if  update.message.text == 'ninguna':
         bot.sendMessage(chat_id = update.message.chat_id,
                        text = 'Pulsa el número de aquellas estrofas que contienen una diferencia de roles: papeles, tareas,'
@@ -214,7 +216,7 @@ def awnser1(bot,update):
        check_number(update)
        
        return AWNSER1
-    if update.message.text == '\U0001f51a' and read_lyrics.num_estrofas(update) > 0:
+    if update.message.text == '\U0001f51a' and len(estro) > 0:
         bot.sendMessage(chat_id = update.message.chat_id,
                         text = 'En una escala de 1 a 10, siendo 1 el nivel más bajo y 10 el más alto, '
                         '¿en qué medida dichos estereotipos degradan a la mujer o la sitúan en una posición'
@@ -225,13 +227,13 @@ def awnser1(bot,update):
 
 def roles(bot,update):
     if update.message.text.isdigit():
-       
+       global estro, genero_musical, song_id
        bot.sendMessage(chat_id = update.message.chat_id,
                        text = 'Pulsa el número de aquellas estrofas que contienen una diferencia de roles: papeles, tareas, '
                        'normas que debe asumir la mujer y el hombre en sociedad. Por ej. se espera que las mujeres'
                        ' cuiden de los familiares enfermos.', reply_markup = teclado(3) )
-       chat.estereotipo(update, read_lyrics.song_name(update))
-       
+       chat.estereotipo(update, read_lyrics.song_name(update),estro)
+       estro =[]
        return AWNSER2
     else:
         update.message.reply_text('Tiene que ser un número del 1 al 10')
@@ -239,7 +241,7 @@ def roles(bot,update):
 
 
 def awnser2(bot,update):
-    
+    global estro
     if  update.message.text == 'ninguna':
        bot.sendMessage(chat_id = update.message.chat_id,
                        text = 'Pulsa el número de aquellas estrofas que plantean posiciones de desigualdad, otorgando '
@@ -251,7 +253,7 @@ def awnser2(bot,update):
       check_number(update)
       
       return AWNSER2
-    if update.message.text == '\U0001f51a' and read_lyrics.num_estrofas(update) > 0:
+    if update.message.text == '\U0001f51a' and len(estro) > 0:
         bot.sendMessage(chat_id = update.message.chat_id,
                         text ='En una escala de 1 a 10, siendo 1 el nivel más bajo y 10 el más alto, '
                         '¿en qué medida los roles asignados a las mujeres poseen menos reconocimiento '
@@ -262,12 +264,12 @@ def awnser2(bot,update):
 
 def poder(bot,update):
     if update.message.text.isdigit():
-       
+       global estro
        bot.sendMessage(chat_id = update.message.chat_id,
                        text ='Pulsa el número aquellas estrofas que plantean posiciones de desigualdad, otorgando '
                        'más poder a los hombres que a las mujeres.', reply_markup = teclado(3) )
-       chat.roles(update, read_lyrics.song_name(update))
-       
+       chat.roles(update, read_lyrics.song_name(update) ,estro)
+       estro =[]
        return AWNSER3
     else:
         update.message.reply_text('Tiene que ser un número del 1 al 10')
@@ -275,7 +277,7 @@ def poder(bot,update):
 
 
 def awnser3(bot,update):
-    
+    global estro
     if  update.message.text == 'ninguna':
        bot.sendMessage(chat_id = update.message.chat_id,
                        text = 'Pulsa el número de aquellas estrofas que se refieren al cuerpo de las mujeres.',
@@ -285,7 +287,7 @@ def awnser3(bot,update):
     if update.message.text.isdigit():
       check_number(update)
       return AWNSER3
-    if update.message.text == '\U0001f51a' and read_lyrics.num_estrofas(update) > 0:
+    if update.message.text == '\U0001f51a' and len(estro) > 0:
         bot.sendMessage(chat_id = update.message.chat_id,
                         text = 'En una escala de 1 a 10, siendo 1 el nivel más bajo y 10 el más alto, '
                                '¿en qué medida se plantea una relación de dominación?', reply_markup = teclado(5) )
@@ -295,11 +297,12 @@ def awnser3(bot,update):
 
 def cuerpo(bot,update):
     if update.message.text.isdigit():
-       
+       global estro, genero_musical, song_id
        bot.sendMessage(chat_id = update.message.chat_id,
                        text = 'Pulsa el número aquellas estrofas que se refieren al cuerpo de las mujeres.',
                        reply_markup = teclado(3) )
-       chat.poder(update, read_lyrics.song_name(update))
+       chat.poder(update, read_lyrics.song_name(update),estro)
+       estro = []
        return AWNSER4
     else:
         update.message.reply_text('Tiene que ser un número del 1 al 10')
@@ -307,7 +310,7 @@ def cuerpo(bot,update):
 
 
 def awnser4(bot,update):
-    
+    global estro
     if  update.message.text == 'ninguna':
 
        bot.sendMessage(chat_id = update.message.chat_id,
@@ -318,7 +321,7 @@ def awnser4(bot,update):
        check_number(update)
        
        return AWNSER4
-    if update.message.text == '\U0001f51a' and read_lyrics.num_estrofas(update) > 0:
+    if update.message.text == '\U0001f51a' and len(estro) > 0:
         bot.sendMessage(chat_id = update.message.chat_id,
                         text ='En una escala de 1 a 10, siendo 1 el nivel más bajo y 10 el más alto, '
                         '¿en qué medida se les otorga un valor de “objeto sexual”?'
@@ -328,11 +331,11 @@ def awnser4(bot,update):
 
 def general(bot,update):
     if update.message.text.isdigit():
-       
+       global estro, genero_musical, song_id
        bot.sendMessage(chat_id = update.message.chat_id,
                        text = 'Por ultimo ¿consideras sexista esta canción?', reply_markup=teclado(2))
-       chat.cuerpo(update, read_lyrics.song_name(update))
-       
+       chat.cuerpo(update, read_lyrics.song_name(update),estro)
+       estro = []
        return AWNSER5
     else:
         update.message.reply_text('Tiene que ser un número del 1 al 10')
@@ -342,13 +345,13 @@ def general(bot,update):
 
 
 def awnser5(bot,update):
-    
-    if  update.message.text == 'No' or update.message.text == 'no':
+    global estro, aux
+    if  update.message.text == 'No':
        bot.sendMessage(chat_id=update.message.chat_id, text = '¡Genial! Hemos completado el análisis de esta canción.'
                       ' Si quieres analizar otra canción teclea el comando /analizar',reply_markup =ReplyKeyboardRemove())
        read_lyrics.analyzed(update)
        chat.general(update, read_lyrics.song_name(update))
-       
+       estro = []
        return ConversationHandler.END
 
     if update.message.text == 'Sí' or update.message.text == 'Si' or update.message.text == 'sí' or update.message.text == 'Sí':
@@ -362,13 +365,13 @@ def awnser5(bot,update):
 
 
 def end (bot, update):
-  
+  global aux
   bot.sendMessage(chat_id=update.message.chat_id, text = '¡Genial! Hemos completado el análisis de esta canción.'
                     ' Si quieres analizar otra canción\n teclea el comando /analizar ', reply_markup =ReplyKeyboardRemove())
-  chat.general(update, read_lyrics.song_name(update))
+  chat.general(update, read_lyrics.song_name(update),aux)
   read_lyrics.analyzed(update)
   read_lyrics.drop(update)
-  
+  aux = ''
   
   return ConversationHandler.END
 
@@ -394,9 +397,12 @@ def ayuda(bot,update):
                             reply_markup=ReplyKeyboardRemove())
 
 
+
+
+
 def main():
 
-  Token = ''
+  Token = '484837035:AAHmnHWN7KEGLX9vAIsgyDW0duOX7YWi0jU'
   updater = Updater(Token)
 
 
