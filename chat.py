@@ -49,9 +49,9 @@ def user_sexo(update):
     posts = db.users 
     posts.update({"user_id":update.message.chat.id},{"$set":{"Sexo":update.message.text}})#update.message.text
     if update.message.text == "Chico":
-       posts.update({"user_id":update.message.chat.id},{"$set":{"Codigo_sexo":0}})
+       posts.update({"user_id":update.message.chat.id},{"$set":{"Codigo_sexo":0 ,"analisis":[]}})
     else:
-       posts.update({"user_id":update.message.chat.id},{"$set":{"Codigo_sexo":1}})
+       posts.update({"user_id":update.message.chat.id},{"$set":{"Codigo_sexo":1,"analisis":[]}})
 
 def user_age(update):
   db = client.users
@@ -62,7 +62,7 @@ def user_age(update):
             "user_id": update.message.chat.id,
             "user_age": update.message.text,
             "date": update.message.date
-
+            
             }
     posts.insert_one(post).inserted_id
 
@@ -97,46 +97,56 @@ def genero_cancion(song_id):
     genero = "romántica"
   return genero
 
+def check_array(update,song_name):
+  db = client.users
+  posts = db.users
+  bol = False
+  for i in range(0,len(posts.find_one({"user_id":  update.message.chat.id})["analisis"]) ):
+     if posts.find_one({"user_id":  update.message.chat.id})["analisis"][i]["name"] == song_name:
+         bol = True
+  return bol
+
+def base(update,song_name):
+   db = client.users
+   posts = db.users
+   songdb = client.song
+   tmp = songdb.tmp
+   if not check_array(update,song_name):
+     posts.update_one({"user_id":  update.message.chat.id}, {"$push": {"analisis":{ "name":song_name,
+                                                                "genero":genero_cancion(tmp.find_one({'user_id':update.message.chat.id})["songId"]),
+                                                                "Codigo_cancion":'' ,
+                                                                "codigo_parrafo_estereotipo":'',
+                                                                "Grado_estereotipo":'',
+                                                                "codigo_parrafo_roles":'',
+                                                                "Grado_roles":'',
+                                                                "codigo_parrafo_poder":'',
+                                                                "Grado_poder":'',
+                                                                "codigo_parrafo_cuerpo":'',
+                                                                "Grado_cuerpo":'',
+                                                                "Pregunta_general":'',
+                                                                "Grado_general":''
+                                                                                }
+                                                                     }
+                                                           })
+
 def estereotipo(update, song_name):
   db = client.users
   songdb = client.song
   tmp = songdb.tmp
   posts = db.users
-  if update.message.text != 'ninguna':
-    posts.update({"user_id":  update.message.chat.id}, {"$push": {"analisis":{ "name":song_name,
-                                                                "genero":genero_cancion(tmp.find_one({'user_id':update.message.chat.id})["songId"]),
-                                                                "Codigo_cancion": tmp.find_one({'user_id':update.message.chat.id})["songId"],
-                                                                "codigo_parrafo_estereotipo":tmp.find_one({'user_id':update.message.chat.id})["estro"],
-                                                                "Grado_estereotipo":int(update.message.text),
-                                                                "codigo_parrafo_roles":'',
-                                                                "Grado_roles":'',
-                                                                "codigo_parrafo_poder":'',
-                                                                "Grado_poder":'',
-                                                                "codigo_parrafo_cuerpo":'',
-                                                                "Grado_cuerpo":'',
-                                                                "Pregunta_general":'',
-                                                                "Grado_general":''
-                                                                                }
-                                                                     }
-                                                           })
+  
+  
+  if update.message.text != 'ninguna' :
+    posts.update_one({"user_id":  update.message.chat.id}, {"$set": {
+                     "analisis.$[elemt].codigo_parrafo_estereotipo":tmp.find_one({'user_id':update.message.chat.id})["estro"],
+                     "analisis.$[elemt].Grado_estereotipo":int(update.message.text)
+                      }}, array_filters=[{"elemt.name":{"$eq":song_name}}] )           
      
   else:
-    posts.update({"user_id":  update.message.chat.id}, {"$push": {"analisis":{ "name":song_name,
-                                                                "genero":genero_cancion(tmp.find_one({'user_id':update.message.chat.id})["songId"]),
-                                                                "Codigo_cancion": tmp.find_one({'user_id':update.message.chat.id})["songId"],
-                                                                "codigo_parrafo_estereotipo": 0,
-                                                                "Grado_estereotipo":0,
-                                                                "codigo_parrafo_roles":'',
-                                                                "Grado_roles":'',
-                                                                "codigo_parrafo_poder":'',
-                                                                "Grado_poder":'',
-                                                                "codigo_parrafo_cuerpo":'',
-                                                                "Grado_cuerpo":'',
-                                                                "Pregunta_general":'',
-                                                                "Grado_general":''
-                                                                                }
-                                                                     }
-                                                           })
+    posts.update_one({"user_id":  update.message.chat.id}, {"$set": {
+                         "analisis.$[elemt].codigo_parrafo_estereotipo": 0,
+                         "analisis.$[elemt].Grado_estereotipo": 0
+                        }}, array_filters=[{"elemt.name":{"$eq":song_name}}] ) 
   tmp.update({"user_id":  update.message.chat.id},{"$set":{"estro":[]}})
 
 def roles(update,song_name):

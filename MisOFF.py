@@ -193,7 +193,7 @@ def estereotipo(bot, update):
                     'generalizaciones sobre lo que “debe ser” una mujer y/o un hombre).'
                     ' Presiona \U0001f51a para terminar y pasar a la siguiente pregunta.', reply_markup = teclado(3))
 
-    
+    chat.base(update, read_lyrics.song_name(update))
     return AWNSER1
   else:
     bot.sendMessage(chat_id = update.message.chat.id, text='Pulsa EN para analizar las letras de canciones en ingles o\n'
@@ -395,8 +395,7 @@ def ayuda(bot,update):
 
 
 def main():
-
-  Token = ''
+  Token = '484837035:AAHmnHWN7KEGLX9vAIsgyDW0duOX7YWi0jU'
   updater = Updater(Token)
 
 

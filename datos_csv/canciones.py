@@ -5,6 +5,7 @@ import json
 from pymongo import MongoClient
 client = MongoClient('localhost',27017)
 db = client.song
+
 def CSV(name):
           allsongs =db.allsongs
           f = csv.writer(open(name, "w+"))

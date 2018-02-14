@@ -1,6 +1,10 @@
-user_id,user_age,Sexo,codigo_sexo,nombre_cancion,Codigo_cancion,codigo_parrafo_roles,Grado_roles
-500737046,27,Chico,0,How Long,80004,3,8
+user_id,user_age,Sexo,codigo_sexo,nombre_cancion,Codigo_cancion,codigo_parrafo_roles,Grado_roles,parrafos
+500737046,27,Chico,0,Deja Que Te Bese,20006,1,8
 ,,,,,,2
-,,,,,,1
 ,,,,,,4
-500737046,27,Chico,0,All Falls Down - K-391 Remix,80009,0,0
+500737046,27,Chico,0,Deja Que Te Bese,20006,1,8
+,,,,,,2
+,,,,,,4
+500737046,27,Chico,0,Espectacular,20005,0,0
+500737046,27,Chico,0,Saturno,20003,2,10
+,,,,,,1

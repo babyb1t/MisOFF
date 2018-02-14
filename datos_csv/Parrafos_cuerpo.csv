@@ -1,2 +1,8 @@
-user_id,user_age,Sexo,codigo_sexo,nombre_cancion,Codigo_cancion,codigo_parrafo_cuerpo,Grado_cuerpo
-500737046,27,Chico,0,How Long,80004,0,0
+user_id,user_age,Sexo,codigo_sexo,nombre_cancion,Codigo_cancion,codigo_parrafo_cuerpo,Grado_cuerpo,parrafos
+500737046,27,Chico,0,Deja Que Te Bese,20006,0,0
+500737046,27,Chico,0,Deja Que Te Bese,20006,0,0
+500737046,27,Chico,0,Espectacular,20005,0,0
+500737046,27,Chico,0,Saturno,20003,4,8
+,,,,,,2
+,,,,,,1
+,,,,,,3

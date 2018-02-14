@@ -1,5 +1,10 @@
-user_id,user_age,Sexo,codigo_sexo,nombre_cancion,Codigo_cancion,codigo_parrafo_estereotipo,Grado_estereotipo
-500737046,27,Chico,0,How Long,80004,3,8
-,,,,,,2
-500737046,27,Chico,0,All Falls Down - K-391 Remix,80009,4,8
+user_id,user_age,Sexo,codigo_sexo,nombre_cancion,Codigo_cancion,codigo_parrafo_estereotipo,Grado_estereotipo,parrafos
+500737046,27,Chico,0,Deja Que Te Bese,20006,2,8
 ,,,,,,3
+,,,,,,1
+500737046,27,Chico,0,Deja Que Te Bese,20006,0,0
+500737046,27,Chico,0,Espectacular,20005,0,0
+500737046,27,Chico,0,Saturno,20003,1,4
+,,,,,,2
+,,,,,,3
+,,,,,,4

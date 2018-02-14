@@ -55,8 +55,8 @@ def new_song(update): #make sure that the user is analysing a song never analyze
     
     i+=1
     if i == 40:
-      song_id = ''
-      return 1, ''
+      drop(update)
+      return 1
 
     ####song test #### cambiar
     
